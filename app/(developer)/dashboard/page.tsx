@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
@@ -17,6 +17,34 @@ interface DashboardMetrics {
   totalFeedback: number
 }
 
+function PaymentBanner() {
+  const searchParams = useSearchParams()
+  const paymentStatus = searchParams.get('payment')
+  const paymentTier = searchParams.get('tier')
+
+  if (paymentStatus === 'success') {
+    return (
+      <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6">
+        <CheckCircle className="w-5 h-5 flex-shrink-0" />
+        <p className="text-sm font-medium">
+          Payment successful! Your app has been upgraded to{' '}
+          {paymentTier === 'launch' ? 'Launch tier' : 'Builder tier'}.
+        </p>
+      </div>
+    )
+  }
+
+  if (paymentStatus === 'cancelled') {
+    return (
+      <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-6">
+        <p className="text-sm">Payment cancelled. No charge was made.</p>
+      </div>
+    )
+  }
+
+  return null
+}
+
 export default function DeveloperDashboard() {
   const { user } = useAuth()
   const [apps, setApps] = useState<App[]>([])
@@ -27,10 +55,6 @@ export default function DeveloperDashboard() {
   })
   const [loading, setLoading] = useState(true)
   const [upgrading, setUpgrading] = useState(false)
-
-  const searchParams = useSearchParams()
-  const paymentStatus = searchParams.get('payment')
-  const paymentTier = searchParams.get('tier')
 
   useEffect(() => {
     fetch('/api/apps?mine=true', { credentials: 'include' })
@@ -127,20 +151,9 @@ export default function DeveloperDashboard() {
             </Link>
           </div>
 
-          {paymentStatus === 'success' && (
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6">
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">
-                Payment successful! Your app has been upgraded to{' '}
-                {paymentTier === 'launch' ? 'Launch tier' : 'Builder tier'}.
-              </p>
-            </div>
-          )}
-          {paymentStatus === 'cancelled' && (
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-6">
-              <p className="text-sm">Payment cancelled. No charge was made.</p>
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <PaymentBanner />
+          </Suspense>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <MetricCard
