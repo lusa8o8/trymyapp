@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
+    console.log('POST /api/apps - user:', user?.id, 'error:', authError?.message)
+    
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

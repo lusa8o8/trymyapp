@@ -16,7 +16,7 @@ export default function DeveloperDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/apps?mine=true')
+    fetch('/api/apps?mine=true', { credentials: 'include' })
       .then(r => r.json())
       .then(({ data }) => { setApps(data ?? []); setLoading(false) })
   }, [])

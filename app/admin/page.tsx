@@ -16,8 +16,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/apps').then(r => r.json()),
-      fetch('/api/admin/users').then(r => r.json())
+      fetch('/api/admin/apps', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/admin/users', { credentials: 'include' }).then(r => r.json())
     ]).then(([appsRes, usersRes]) => {
       setApps(appsRes.data ?? [])
       setUsers(usersRes.data ?? [])
@@ -30,6 +30,7 @@ export default function AdminDashboard() {
     const res = await fetch(`/api/apps/${appId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ status })
     })
     if (res.ok) {

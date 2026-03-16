@@ -29,6 +29,7 @@ export default function SubmitAppPage() {
     const res = await fetch('/api/apps', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(form)
     })
     const result = await res.json()
