@@ -38,7 +38,13 @@ export interface ReportContent {
   }>
   would_use_pct: number
   priority_actions: string[]
-  detailed_analysis: string
+  detailed_analysis: string | {
+    overview: string
+    ux_analysis: string
+    bug_analysis: string
+    suggestions_analysis: string
+    action_items: string
+  }
 }
 
 export async function generateReport(data: FeedbackData): Promise<ReportContent> {
@@ -80,7 +86,13 @@ Analyze this feedback and respond with ONLY a valid JSON object (no markdown, no
   ],
   "would_use_pct": <percentage as integer 0-100>,
   "priority_actions": ["action 1", "action 2", "action 3"],
-  "detailed_analysis": "3-4 paragraph detailed analysis covering UX, bugs, suggestions, and recommendations"
+  "detailed_analysis": {
+    "overview": "1 paragraph overall assessment",
+    "ux_analysis": "1 paragraph focused on UX findings and patterns",
+    "bug_analysis": "1 paragraph on bugs and technical issues found",
+    "suggestions_analysis": "1 paragraph synthesizing tester suggestions",
+    "action_items": "1 paragraph with specific prioritised next steps for the developer"
+  }
 }`
 
   const message = await anthropic.messages.create({

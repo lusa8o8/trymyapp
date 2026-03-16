@@ -93,11 +93,16 @@ export interface Session {
 export interface Report {
   id: string;
   app_id: string;
-  status: ReportStatus;
-  content_json: ReportContent | null;
-  content_html: string | null;
-  generated_at: string | null;
-  feedback_count: number;
+  summary: string | null;
+  ux_score_avg: number | null;
+  sentiment: 'positive' | 'neutral' | 'negative' | null;
+  top_issues: Array<{ issue: string; frequency: number; severity: 'high' | 'medium' | 'low' }> | null;
+  bugs: Array<{ description: string; frequency: number }> | null;
+  suggestions: Array<{ suggestion: string; votes: number }> | null;
+  would_use_pct: number | null;
+  priority_actions: string[] | null;
+  detailed_analysis: string | null;
+  created_by: string | null;
   created_at: string;
 }
 
