@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { AppCard } from '@/components/apps/AppCard'
@@ -11,9 +11,23 @@ type AppWithDeveloper = App & {
   developer: { display_name: string | null; email: string }
 }
 
-export default function TestsPage() {
+function CompletedBanner() {
   const searchParams = useSearchParams()
   const completed = searchParams.get('completed')
+
+  if (!completed) return null
+
+  return (
+    <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6">
+      <CheckCircle className="w-5 h-5 flex-shrink-0" />
+      <p className="text-sm font-medium">
+        Test completed! Your feedback has been submitted successfully.
+      </p>
+    </div>
+  )
+}
+
+export default function TestsPage() {
   const [apps, setApps] = useState<AppWithDeveloper[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,14 +52,9 @@ export default function TestsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {completed && (
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6">
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">
-                Test completed! Your feedback has been submitted successfully.
-              </p>
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <CompletedBanner />
+          </Suspense>
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
