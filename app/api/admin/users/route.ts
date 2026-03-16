@@ -9,10 +9,7 @@ function createRouteClient(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll().map(cookie => ({
-            name: cookie.name,
-            value: decodeURIComponent(cookie.value),
-          }))
+          return request.cookies.getAll()
         },
         setAll() {},
       },
@@ -23,8 +20,8 @@ function createRouteClient(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteClient(request)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
     if (!userData || userData.role !== 'admin') {

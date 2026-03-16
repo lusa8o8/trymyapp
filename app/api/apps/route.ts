@@ -9,10 +9,7 @@ function createRouteClient(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll().map(cookie => ({
-            name: cookie.name,
-            value: decodeURIComponent(cookie.value),
-          }))
+          return request.cookies.getAll()
         },
         setAll() {},
       },
@@ -26,17 +23,12 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const sort = searchParams.get('sort') ?? 'newest'
     const mine = searchParams.get('mine')
-
     const serviceClient = createServiceClient()
 
     if (mine) {
       const supabase = createRouteClient(request)
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      console.log('GET /api/apps mine - user:', user?.id, 'error:', authError?.message)
-      
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
       const { data, error } = await serviceClient
         .from('apps')
@@ -68,12 +60,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteClient(request)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    const cookies = request.cookies.getAll(); console.log('POST cookies full:', JSON.stringify(cookies.map(c => ({name: c.name, len: c.value.length})))); console.log('POST /api/apps - user:', user?.id, 'error:', authError?.message)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: userData } = await supabase
       .from('users')
@@ -116,5 +104,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-
