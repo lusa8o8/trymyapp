@@ -9,11 +9,12 @@ function createRouteClient(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll().map(cookie => ({
+            name: cookie.name,
+            value: decodeURIComponent(cookie.value),
+          }))
         },
-        setAll() {
-          // Route handlers can't set cookies directly
-        },
+        setAll() {},
       },
     }
   )
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteClient(request)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    console.log('POST /api/apps - user:', user?.id, 'error:', authError?.message)
+    const cookies = request.cookies.getAll(); console.log('POST cookies full:', JSON.stringify(cookies.map(c => ({name: c.name, len: c.value.length})))); console.log('POST /api/apps - user:', user?.id, 'error:', authError?.message)
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -115,3 +116,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+

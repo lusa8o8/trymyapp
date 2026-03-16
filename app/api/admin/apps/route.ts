@@ -9,7 +9,10 @@ function createRouteClient(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll().map(cookie => ({
+            name: cookie.name,
+            value: decodeURIComponent(cookie.value),
+          }))
         },
         setAll() {},
       },

@@ -29,7 +29,10 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return request.cookies.getAll().map(cookie => ({
+            name: cookie.name,
+            value: decodeURIComponent(cookie.value),
+          }));
         },
         setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
           cookiesToSet.forEach(({ name, value, options }) => {
