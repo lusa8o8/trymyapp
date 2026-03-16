@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { MetricCard } from '@/components/analytics/MetricCard'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { Upload, TrendingUp, MessageSquare, DollarSign, Plus,
-         Eye, FileText } from 'lucide-react'
+         Eye, FileText, CheckCircle } from 'lucide-react'
 import type { App } from '@/types/database'
 
 interface DashboardMetrics {
@@ -25,6 +26,11 @@ export default function DeveloperDashboard() {
     totalFeedback: 0
   })
   const [loading, setLoading] = useState(true)
+  const [upgrading, setUpgrading] = useState(false)
+
+  const searchParams = useSearchParams()
+  const paymentStatus = searchParams.get('payment')
+  const paymentTier = searchParams.get('tier')
 
   useEffect(() => {
     fetch('/api/apps?mine=true', { credentials: 'include' })
@@ -73,6 +79,31 @@ export default function DeveloperDashboard() {
       })
   }, [])
 
+  const handleUpgrade = async (tier: 'builder' | 'launch') => {
+    if (!apps.length) {
+      alert('Submit an app first before upgrading')
+      return
+    }
+    const activeApp = apps.find(a => a.status === 'active') ?? apps[0]
+    setUpgrading(true)
+
+    const res = await fetch('/api/payments/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ app_id: activeApp.id, tier })
+    })
+    const result = await res.json()
+
+    if (!res.ok) {
+      alert(result.error)
+      setUpgrading(false)
+      return
+    }
+
+    window.location.href = result.url
+  }
+
   return (
     <PageWrapper>
       <div className="bg-surface-muted min-h-screen py-12">
@@ -95,6 +126,21 @@ export default function DeveloperDashboard() {
               Submit New App
             </Link>
           </div>
+
+          {paymentStatus === 'success' && (
+            <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6">
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">
+                Payment successful! Your app has been upgraded to{' '}
+                {paymentTier === 'launch' ? 'Launch tier' : 'Builder tier'}.
+              </p>
+            </div>
+          )}
+          {paymentStatus === 'cancelled' && (
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-6">
+              <p className="text-sm">Payment cancelled. No charge was made.</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <MetricCard
@@ -229,9 +275,22 @@ export default function DeveloperDashboard() {
                 <p className="text-sm text-white/80 mb-4">
                   Builder $29 · Launch $97 founding price
                 </p>
-                <button className="w-full py-2.5 rounded-lg border border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors">
-                  Upgrade Now
-                </button>
+                <div className="space-y-2 mt-4">
+                  <button
+                    onClick={() => handleUpgrade('builder')}
+                    disabled={upgrading}
+                    className="w-full py-2 rounded-lg border border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors disabled:opacity-50"
+                  >
+                    Builder — $29
+                  </button>
+                  <button
+                    onClick={() => handleUpgrade('launch')}
+                    disabled={upgrading}
+                    className="w-full py-2.5 rounded-lg bg-white text-brand-black text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-50"
+                  >
+                    {upgrading ? 'Redirecting...' : 'Launch — $97 founding'}
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-card p-6">
