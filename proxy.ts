@@ -4,14 +4,29 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  const publicRoutes = ['/', '/browse', '/login', '/signup', '/creators']
-  const isPublicRoute =
-    publicRoutes.some(route => pathname === route) ||
-    pathname.startsWith('/apps/') ||
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/auth/') ||
+  // Static files and Next.js internals — always pass through
+  if (
     pathname.startsWith('/_next/') ||
-    pathname.includes('.')
+    pathname.startsWith('/favicon') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|map)$/)
+  ) {
+    return NextResponse.next()
+  }
+
+  // Public routes — no auth required
+  const isPublicRoute =
+    pathname === '/' ||
+    pathname === '/browse' ||
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/creators' ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/api/') ||
+    // App detail page only — not /apps/[id]/analytics or /apps/[id]/report
+    (pathname.startsWith('/apps/') &&
+      !pathname.includes('/analytics') &&
+      !pathname.includes('/report') &&
+      pathname.split('/').filter(Boolean).length === 2)
 
   let response = NextResponse.next({
     request: { headers: request.headers },
@@ -42,16 +57,18 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (isPublicRoute) {
-    return response
-  }
-
+  // Not logged in — only public routes allowed
   if (!user) {
+    if (isPublicRoute) return response
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
+  // Logged in — public routes pass through
+  if (isPublicRoute) return response
+
+  // Get role from public.users
   const { data: profile } = await supabase
     .from('users')
     .select('role')
@@ -60,12 +77,25 @@ export async function middleware(request: NextRequest) {
 
   const role = profile?.role ?? 'tester'
 
+  // Developer-only routes
   const isDeveloperRoute =
     pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/submit')
+    pathname.startsWith('/submit') ||
+    (pathname.startsWith('/apps/') && (
+      pathname.includes('/analytics') ||
+      pathname.includes('/report')
+    ))
 
+  // Tester-only routes
   const isTesterRoute = pathname.startsWith('/tests')
+
+  // Admin-only routes
   const isAdminRoute = pathname.startsWith('/admin')
+
+  // complete-profile — any authenticated user
+  const isCompleteProfile = pathname.startsWith('/complete-profile')
+
+  if (isCompleteProfile) return response
 
   if (isDeveloperRoute && role !== 'developer' && role !== 'admin') {
     return NextResponse.redirect(new URL('/', request.url))
@@ -83,7 +113,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image).*)'],
 }
