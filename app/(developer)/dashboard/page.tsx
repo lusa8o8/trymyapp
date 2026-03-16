@@ -10,18 +10,68 @@ import { Upload, TrendingUp, MessageSquare, DollarSign, Plus,
          Eye, FileText } from 'lucide-react'
 import type { App } from '@/types/database'
 
+interface DashboardMetrics {
+  totalApps: number
+  avgUxScore: number | null
+  totalFeedback: number
+}
+
 export default function DeveloperDashboard() {
   const { user } = useAuth()
   const [apps, setApps] = useState<App[]>([])
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalApps: 0,
+    avgUxScore: null,
+    totalFeedback: 0
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/apps?mine=true', { credentials: 'include' })
       .then(r => r.json())
-      .then(({ data }) => { setApps(data ?? []); setLoading(false) })
-  }, [])
+      .then(async ({ data }) => {
+        const myApps: App[] = data ?? []
+        setApps(myApps)
 
-  const activeApps = apps.filter(a => a.status === 'active')
+        const activeApps = myApps.filter(a => a.status === 'active')
+        if (activeApps.length === 0) {
+          setMetrics({ totalApps: myApps.length, avgUxScore: null, totalFeedback: 0 })
+          setLoading(false)
+          return
+        }
+
+        const analyticsResults = await Promise.all(
+          activeApps.map(app =>
+            fetch(`/api/apps/${app.id}/analytics`, { credentials: 'include' })
+              .then(r => r.json())
+              .then(({ data }) => data)
+              .catch(() => null)
+          )
+        )
+
+        const validResults = analyticsResults.filter(Boolean)
+        const totalFeedback = validResults.reduce(
+          (sum, a) => sum + (a?.feedback_count ?? 0), 0
+        )
+        const scoresWithData = validResults.filter(
+          a => a?.avg_ux_score !== null
+        )
+        const avgUxScore = scoresWithData.length > 0
+          ? Math.round(
+              scoresWithData.reduce(
+                (sum, a) => sum + a.avg_ux_score, 0
+              ) / scoresWithData.length * 10
+            ) / 10
+          : null
+
+        setMetrics({
+          totalApps: myApps.length,
+          avgUxScore,
+          totalFeedback
+        })
+        setLoading(false)
+      })
+  }, [])
 
   return (
     <PageWrapper>
@@ -30,98 +80,152 @@ export default function DeveloperDashboard() {
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-text-primary mb-1">Developer Dashboard</h1>
-              <p className="text-text-secondary">Welcome back! Here&apos;s your testing overview.</p>
+              <h1 className="text-3xl font-bold text-text-primary mb-1">
+                Developer Dashboard
+              </h1>
+              <p className="text-text-secondary">
+                Welcome back! Here&apos;s your testing overview.
+              </p>
             </div>
-            <Link href="/submit"
-              className="mt-4 md:mt-0 inline-flex items-center gap-2 bg-brand-black text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors">
+            <Link
+              href="/submit"
+              className="mt-4 md:mt-0 inline-flex items-center gap-2 bg-brand-black text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors"
+            >
               <Plus className="w-4 h-4" />
               Submit New App
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <MetricCard label="Apps Submitted" value={apps.length}
-              icon={<Upload className="w-5 h-5 text-blue-600" />} iconBg="bg-blue-50" />
-            <MetricCard label="Avg. UX Score" value="—"
-              icon={<TrendingUp className="w-5 h-5 text-green-600" />} iconBg="bg-green-50" />
-            <MetricCard label="Total Feedback" value="0"
-              icon={<MessageSquare className="w-5 h-5 text-orange-500" />} iconBg="bg-orange-50" />
-            <MetricCard label="Pending Payment" value="$0"
-              icon={<DollarSign className="w-5 h-5 text-purple-600" />} iconBg="bg-purple-50" />
+            <MetricCard
+              label="Apps Submitted"
+              value={metrics.totalApps}
+              icon={<Upload className="w-5 h-5 text-blue-600" />}
+              iconBg="bg-blue-50"
+            />
+            <MetricCard
+              label="Avg. UX Score"
+              value={metrics.avgUxScore !== null ? `${metrics.avgUxScore}/5` : '—'}
+              icon={<TrendingUp className="w-5 h-5 text-green-600" />}
+              iconBg="bg-green-50"
+            />
+            <MetricCard
+              label="Total Feedback"
+              value={metrics.totalFeedback}
+              icon={<MessageSquare className="w-5 h-5 text-orange-500" />}
+              iconBg="bg-orange-50"
+            />
+            <MetricCard
+              label="Pending Payment"
+              value="$0"
+              icon={<DollarSign className="w-5 h-5 text-purple-600" />}
+              iconBg="bg-purple-50"
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-card overflow-hidden">
                 <div className="px-6 py-4 border-b border-surface-border">
-                  <h2 className="text-lg font-semibold text-text-primary">My Apps</h2>
+                  <h2 className="text-lg font-semibold text-text-primary">
+                    My Apps
+                  </h2>
                 </div>
                 <div className="p-6 space-y-4">
                   {loading ? (
-                    <p className="text-text-faint text-sm">Loading...</p>
+                    <div className="space-y-3">
+                      {[1,2].map(i => (
+                        <div key={i} className="h-24 bg-surface-muted rounded-xl animate-pulse" />
+                      ))}
+                    </div>
                   ) : apps.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-text-faint text-sm mb-4">No apps submitted yet</p>
-                      <Link href="/submit"
-                        className="inline-flex items-center gap-2 bg-brand-black text-white px-4 py-2.5 rounded-lg text-sm font-medium">
-                        <Plus className="w-4 h-4" /> Submit your first app
+                      <p className="text-text-faint text-sm mb-4">
+                        No apps submitted yet
+                      </p>
+                      <Link
+                        href="/submit"
+                        className="inline-flex items-center gap-2 bg-brand-black text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Submit your first app
                       </Link>
                     </div>
-                  ) : apps.map(app => (
-                    <div key={app.id} className="bg-surface-muted rounded-xl p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-text-primary">{app.name}</h3>
-                            <Badge variant={
-                              app.status === 'active' ? 'success' :
-                              app.status === 'pending' ? 'warning' : 'danger'
-                            }>
-                              {app.status}
-                            </Badge>
+                  ) : (
+                    apps.map(app => (
+                      <div key={app.id} className="bg-surface-muted rounded-xl p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-text-primary">
+                                {app.name}
+                              </h3>
+                              <Badge variant={
+                                app.status === 'active' ? 'success' :
+                                app.status === 'pending' ? 'warning' : 'danger'
+                              }>
+                                {app.status}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-text-faint">
+                              Submitted {new Date(app.created_at).toLocaleDateString(
+                                'en-US', { month: 'long', day: 'numeric', year: 'numeric' }
+                              )}
+                            </p>
                           </div>
-                          <p className="text-xs text-text-faint">
-                            Submitted {new Date(app.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                          </p>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Link
+                            href={`/apps/${app.id}/analytics`}
+                            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-white transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Analytics
+                          </Link>
+                          {app.status === 'active' && (
+                            <Link
+                              href={`/apps/${app.id}/report`}
+                              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-black text-white text-sm hover:bg-brand-dark transition-colors"
+                            >
+                              <FileText className="w-4 h-4" />
+                              View Report
+                            </Link>
+                          )}
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-3">
-                        <Link href={`/apps/${app.id}/analytics`}
-                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-white transition-colors">
-                          <Eye className="w-4 h-4" /> Analytics
-                        </Link>
-                        {app.status === 'active' && (
-                          <Link href={`/apps/${app.id}/report`}
-                            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-black text-white text-sm hover:bg-brand-dark transition-colors">
-                            <FileText className="w-4 h-4" /> View Report
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
               <div className="bg-white rounded-2xl shadow-card p-6">
-                <h3 className="font-semibold text-text-primary mb-4">Quick Actions</h3>
+                <h3 className="font-semibold text-text-primary mb-4">
+                  Quick Actions
+                </h3>
                 <div className="space-y-2">
-                  <Link href="/submit"
-                    className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-surface-muted transition-colors">
-                    <Plus className="w-4 h-4" /> Submit New App
+                  <Link
+                    href="/submit"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-surface-muted transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Submit New App
                   </Link>
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-surface-muted transition-colors">
-                    <DollarSign className="w-4 h-4" /> Payment Settings
+                  <button className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-surface-border text-text-secondary text-sm hover:bg-surface-muted transition-colors">
+                    <DollarSign className="w-4 h-4" />
+                    Payment Settings
                   </button>
                 </div>
               </div>
 
               <div className="bg-brand-black rounded-2xl p-6 text-white">
-                <p className="text-xs font-semibold tracking-widest text-white/60 mb-2">UPGRADE YOUR LISTING</p>
-                <h3 className="font-semibold mb-2">Get featured placement + creator review</h3>
+                <p className="text-xs font-semibold tracking-widest text-white/60 mb-2">
+                  UPGRADE YOUR LISTING
+                </p>
+                <h3 className="font-semibold mb-2">
+                  Get featured placement + creator review
+                </h3>
                 <p className="text-sm text-white/80 mb-4">
                   Builder $29 · Launch $97 founding price
                 </p>
@@ -131,7 +235,9 @@ export default function DeveloperDashboard() {
               </div>
 
               <div className="bg-white rounded-2xl shadow-card p-6">
-                <h3 className="font-semibold text-text-primary mb-4">Recent Activity</h3>
+                <h3 className="font-semibold text-text-primary mb-4">
+                  Recent Activity
+                </h3>
                 {apps.length === 0 ? (
                   <p className="text-sm text-text-faint">No activity yet</p>
                 ) : (
@@ -140,7 +246,9 @@ export default function DeveloperDashboard() {
                       <div key={app.id} className="flex gap-3">
                         <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-text-primary">{app.name} submitted for review</p>
+                          <p className="text-sm text-text-primary">
+                            {app.name} — {app.status}
+                          </p>
                           <p className="text-xs text-text-faint">
                             {new Date(app.created_at).toLocaleDateString()}
                           </p>
