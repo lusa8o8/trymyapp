@@ -56,6 +56,8 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  console.log('middleware - pathname:', pathname)
+  console.log('middleware - user:', user?.id ?? 'null', 'cookies:', request.cookies.getAll().map(c => c.name))
 
   // Not logged in — only public routes allowed
   if (!user) {
