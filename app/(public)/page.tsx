@@ -226,7 +226,7 @@ export default function HomePage() {
             </h2>
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
               Join a curated network of creator-testers. Get early access
-              to products. Earn $50 per video review.
+              to products in your niche and earn for every review you publish.
             </p>
             <Link
               href="/creators"

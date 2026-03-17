@@ -31,6 +31,9 @@ export default function Header() {
             <Link href="/browse" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
               Browse Apps
             </Link>
+            <Link href="/tests" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
+              Available Tests
+            </Link>
             <Link href="/creators" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
               Creators
             </Link>

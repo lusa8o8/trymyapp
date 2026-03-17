@@ -62,8 +62,7 @@ export default function CreatorsPage() {
             </h1>
             <p className="text-xl text-text-secondary mb-10 max-w-3xl mx-auto leading-relaxed">
               TryMyApp.uk is building a curated network of creator-testers
-              across every niche. Get early access to MVPs, earn $50 per
-              video review, and grow alongside the products you help build.
+              across every niche. Get early access to MVPs, earn for every review you publish, and grow alongside the products you help build.
             </p>
             <a
               href="#apply"
@@ -96,7 +95,7 @@ export default function CreatorsPage() {
                 {
                   icon: <DollarSign className="w-8 h-8" />,
                   title: 'Get paid + get credit',
-                  desc: '$50 payout + permanent feature on app page'
+                  desc: 'Paid per review + permanent feature on app page'
                 },
               ].map((item, i) => (
                 <div key={i} className="text-center">
@@ -150,7 +149,7 @@ export default function CreatorsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: '$50 per completed video review',
+                  title: 'Competitive pay per completed video review',
                   desc: 'Clear, straightforward payment for your work'
                 },
                 {
