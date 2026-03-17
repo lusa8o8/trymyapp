@@ -30,7 +30,7 @@ export async function POST(
 
     const { data: app } = await serviceClient
       .from('apps')
-      .select('id, name, description, developer_id')
+      .select('id, name, description, category, stage, target_user, specific_feedback, developer_id')
       .eq('id', id)
       .single()
 
@@ -104,6 +104,10 @@ export async function POST(
     const reportContent = await generateReport({
       app_name: app.name,
       app_description: app.description,
+      app_category: app.category,
+      app_stage: app.stage ?? null,
+      target_user: app.target_user ?? null,
+      specific_feedback_requested: app.specific_feedback ?? null,
       total_testers: tests.length,
       completed_tests: completedTestIds.length,
       feedbacks: feedbacks ?? []
