@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
 
       const role = existingUser.role
       if (role === 'admin') return NextResponse.redirect(`${origin}/admin`)
-      if (role === 'developer') return NextResponse.redirect(`${origin}/dashboard`)
-      return NextResponse.redirect(`${origin}/tests`)
+      if (role === 'developer') return NextResponse.redirect(`${origin}/onboarding/developer`)
+      return NextResponse.redirect(`${origin}/onboarding/creator`)
     }
   }
 

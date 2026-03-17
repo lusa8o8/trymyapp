@@ -20,29 +20,24 @@ export default function CreatorOnboardingPage() {
         <div className="bg-surface-muted rounded-xl p-8 mb-10 text-left max-w-md mx-auto">
           <div className="space-y-4">
             {[
-              'Complete your profile',
-              'Browse available apps',
-              'Claim your first test'
+              'Browse available apps in your niche',
+              'Claim a test and follow the 6-step flow',
+              'Publish your video review and submit the URL',
+              'Get paid $50 within 48 hours'
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-6 h-6 border-2 border-surface-border rounded flex-shrink-0" />
-                <span className="text-text-secondary text-lg">{step}</span>
+                <span className="text-text-secondary">{step}</span>
               </div>
             ))}
           </div>
         </div>
         <Link
-          href="/complete-profile"
-          className="inline-flex items-center justify-center bg-brand-black text-white text-lg px-10 py-4 rounded-lg hover:bg-brand-dark transition-colors font-medium mb-4"
+          href="/tests"
+          className="inline-flex items-center justify-center bg-brand-black text-white text-lg px-10 py-4 rounded-lg hover:bg-brand-dark transition-colors font-medium"
         >
-          Complete Your Profile →
+          Browse Available Tests →
         </Link>
-        <div className="mt-4">
-          <Link href="/tests"
-            className="text-text-faint hover:text-text-primary text-sm transition-colors">
-            Browse apps
-          </Link>
-        </div>
       </div>
     </div>
   )

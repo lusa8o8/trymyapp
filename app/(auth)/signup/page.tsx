@@ -45,8 +45,8 @@ export default function SignupPage() {
       return
     }
 
-    if (role === 'developer') router.push('/dashboard')
-    else router.push('/tests')
+    if (role === 'developer') router.push('/onboarding/developer')
+    else router.push('/onboarding/creator')
     router.refresh()
   }
 

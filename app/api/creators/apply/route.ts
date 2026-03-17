@@ -45,10 +45,12 @@ export async function POST(request: NextRequest) {
       data,
       message: 'Application submitted successfully'
     }, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error('Creator apply error:', err)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
+

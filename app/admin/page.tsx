@@ -260,17 +260,48 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           {app.status === 'pending' && (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleApprove(app.id)}
-                                className="px-3 py-1.5 bg-success text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors">
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => setExpandedRejectRow(expandedRejectRow === app.id ? null : app.id)}
-                                className="px-3 py-1.5 bg-danger text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors">
-                                Reject
-                              </button>
+                            <div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleApprove(app.id)}
+                                  className="px-3 py-1.5 bg-success text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => setExpandedRejectRow(
+                                    expandedRejectRow === app.id ? null : app.id
+                                  )}
+                                  className="px-3 py-1.5 bg-danger text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                              {expandedRejectRow === app.id && (
+                                <div className="mt-3 space-y-2">
+                                  <textarea
+                                    value={rejectionReason}
+                                    onChange={e => setRejectionReason(e.target.value)}
+                                    placeholder="Reason for rejection..."
+                                    rows={3}
+                                    className="w-full px-3 py-2 text-xs border border-surface-border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-black"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleReject(app.id)}
+                                      className="px-3 py-1.5 bg-danger text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                                    >
+                                      Confirm Reject
+                                    </button>
+                                    <button
+                                      onClick={() => { setExpandedRejectRow(null); setRejectionReason('') }}
+                                      className="px-3 py-1.5 bg-surface-muted text-text-secondary text-xs font-medium rounded-lg hover:bg-surface-border transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </td>
