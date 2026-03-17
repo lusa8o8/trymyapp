@@ -32,12 +32,18 @@ export function AppCard({ app, showCTA = true }: AppCardProps) {
               </span>
             </div>
           )}
-          <div className="absolute top-3 right-3">
-            {isFeatured ? (
+          <div className="absolute top-3 right-3 flex gap-2">
+            {app.tier === 'launch' && (
               <span className="bg-brand-black text-white text-xs font-medium px-2.5 py-1 rounded-full">
                 Featured
               </span>
-            ) : (
+            )}
+            {app.tier === 'builder' && (
+              <span className="bg-white text-brand-black text-xs font-medium px-2.5 py-1 rounded-full border border-surface-border">
+                Featured
+              </span>
+            )}
+            {app.tier === 'free' && (
               <span className="bg-green-500 text-white text-xs font-medium px-2.5 py-1 rounded-full">
                 Testing Open
               </span>

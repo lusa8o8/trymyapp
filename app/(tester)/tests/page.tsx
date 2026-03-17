@@ -70,7 +70,14 @@ export default function TestsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {apps.map(app => (
-                <AppCard key={app.id} app={app} />
+                <div key={app.id} className="relative">
+                  {app.tier === 'launch' && (
+                    <div className="absolute -top-2 left-4 z-10 bg-brand-black text-white text-xs font-medium px-3 py-1 rounded-full">
+                      Priority Review
+                    </div>
+                  )}
+                  <AppCard app={app} />
+                </div>
               ))}
             </div>
           )}

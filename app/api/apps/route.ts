@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
-    const sort = searchParams.get('sort') ?? 'newest'
     const mine = searchParams.get('mine')
     const serviceClient = createServiceClient()
 
@@ -45,13 +44,28 @@ export async function GET(request: NextRequest) {
       .select('*, developer:users!developer_id(display_name, email)')
       .eq('status', 'active')
 
-    if (category && category !== 'all') query = query.eq('category', category)
-    if (sort === 'featured') query = query.eq('tier', 'launch')
-    query = query.order('created_at', { ascending: false })
+    if (category && category !== 'all') {
+      query = query.eq('category', category)
+    }
 
     const { data, error } = await query
+      .order('created_at', { ascending: false })
+
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ data })
+
+    const tierOrder: Record<string, number> = {
+      launch: 0,
+      builder: 1,
+      free: 2
+    }
+
+    const sorted = (data ?? []).sort((a, b) => {
+      const tierDiff = (tierOrder[a.tier] ?? 2) - (tierOrder[b.tier] ?? 2)
+      if (tierDiff !== 0) return tierDiff
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+
+    return NextResponse.json({ data: sorted })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
