@@ -8,14 +8,16 @@ import { Upload } from 'lucide-react'
 
 const CATEGORIES = ['SaaS', 'Tools', 'Productivity', 'Games', 'Social',
   'Education', 'Health & Fitness', 'Finance', 'Other']
+const STAGES = ['Idea / Concept', 'Prototype', 'Beta', 'Launched']
 
 export default function SubmitAppPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
-    name: '', url: '', category: '', description: '',
-    instructions: '', demo_email: '', demo_password: ''
+    name: '', url: '', category: '', stage: '', target_user: '',
+    specific_feedback: '', description: '', instructions: '',
+    demo_email: '', demo_password: ''
   })
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -82,6 +84,23 @@ export default function SubmitAppPage() {
                   </select>
                 </div>
                 <div>
+                  <label className={labelClass}>App Stage *</label>
+                  <select value={form.stage} onChange={set('stage')} required className={inputClass}>
+                    <option value="">Select stage</option>
+                    {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Target User *</label>
+                  <input type="text" value={form.target_user} onChange={set('target_user')}
+                    placeholder="e.g. Freelance designers who invoice clients" required className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>What specific feedback do you need? *</label>
+                  <textarea value={form.specific_feedback} onChange={set('specific_feedback')}
+                    placeholder="e.g. Is the onboarding clear? Does the pricing page make sense?" required rows={3} className={inputClass} />
+                </div>
+                <div>
                   <label className={labelClass}>Description *</label>
                   <textarea value={form.description} onChange={set('description')}
                     placeholder="Describe your app, its main features, and what makes it unique..."
@@ -132,8 +151,8 @@ export default function SubmitAppPage() {
                   <ul className="text-sm text-text-secondary space-y-1">
                     <li>• Your app will be reviewed within 24 hours</li>
                     <li>• Once approved, testers can start testing</li>
-                    <li>• You&apos;ll receive structured feedback and an AI report</li>
-                    <li>• Upgrade to Builder ($29) or Launch ($97) for featured placement</li>
+                    <li>• You'll receive structured feedback and an AI report</li>
+                    <li>• Upgrade to Builder ($29) or Launch ($97 founding) for featured placement + guaranteed YouTube review</li>
                   </ul>
                 </div>
                 <div className="flex gap-4">

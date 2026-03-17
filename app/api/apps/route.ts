@@ -75,11 +75,12 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { name, url, description, instructions, category,
+            stage, target_user, specific_feedback,
             screenshot_url, icon_url } = body
 
-    if (!name || !url || !description || !instructions || !category) {
+    if (!name || !url || !description || !instructions || !category || !stage || !target_user || !specific_feedback) {
       return NextResponse.json(
-        { error: 'name, url, description, instructions and category are required' },
+        { error: 'name, url, description, instructions, category, stage, target_user and specific_feedback are required' },
         { status: 400 }
       )
     }
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
       .insert({
         developer_id: user.id,
         name, url, description, instructions, category,
+        stage, target_user, specific_feedback,
         screenshot_url: screenshot_url ?? null,
         icon_url: icon_url ?? null,
         status: 'pending',

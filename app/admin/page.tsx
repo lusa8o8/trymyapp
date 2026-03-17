@@ -7,20 +7,40 @@ import type { App, User } from '@/types/database'
 
 type AppWithDeveloper = App & { developer: { display_name: string | null; email: string } }
 
+interface CreatorApplication {
+  id: string
+  name: string
+  email: string
+  content_url: string
+  niche: string
+  follower_range: string
+  country: string
+  why_join: string
+  status: string
+  rejection_reason: string | null
+  created_at: string
+  reviewed_at: string | null
+}
+
 export default function AdminDashboard() {
   const [apps, setApps] = useState<AppWithDeveloper[]>([])
   const [users, setUsers] = useState<User[]>([])
-  const [tab, setTab] = useState<'pending' | 'all' | 'users'>('pending')
+  const [applications, setApplications] = useState<CreatorApplication[]>([])
+  const [tab, setTab] = useState<'pending' | 'all' | 'users' | 'applications'>('pending')
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [expandedRejectRow, setExpandedRejectRow] = useState<string | null>(null)
+  const [rejectionReason, setRejectionReason] = useState('')
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/apps', { credentials: 'include' }).then(r => r.json()),
-      fetch('/api/admin/users', { credentials: 'include' }).then(r => r.json())
-    ]).then(([appsRes, usersRes]) => {
+      fetch('/api/admin/users', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/admin/applications', { credentials: 'include' }).then(r => r.json())
+    ]).then(([appsRes, usersRes, appsRes2]) => {
       setApps(appsRes.data ?? [])
       setUsers(usersRes.data ?? [])
+      setApplications(appsRes2.data ?? [])
       setLoading(false)
     })
   }, [])
@@ -39,11 +59,39 @@ export default function AdminDashboard() {
     setActionLoading(null)
   }
 
+  const handleApprove = async (appId: string) => {
+    await fetch(`/api/admin/applications/${appId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'approved' })
+    })
+    setApplications(prev => prev.map(a =>
+      a.id === appId ? { ...a, status: 'approved' } : a
+    ))
+  }
+
+  const handleReject = async (appId: string) => {
+    await fetch(`/api/admin/applications/${appId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'rejected', rejection_reason: rejectionReason })
+    })
+    setApplications(prev => prev.map(a =>
+      a.id === appId ? { ...a, status: 'rejected' } : a
+    ))
+    setExpandedRejectRow(null)
+    setRejectionReason('')
+  }
+
   const pendingApps = apps.filter(a => a.status === 'pending')
+  const pendingApplications = applications.filter(a => a.status === 'pending')
   const tabs = [
     { id: 'pending', label: `Pending Review (${pendingApps.length})` },
     { id: 'all', label: 'All Apps' },
-    { id: 'users', label: 'Users' }
+    { id: 'users', label: 'Users' },
+    { id: 'applications', label: `Applications (${pendingApplications.length})` }
   ]
 
   return (
@@ -171,6 +219,60 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-sm text-text-faint">
                           {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {tab === 'applications' && (
+                <table className="w-full">
+                  <thead className="bg-surface-muted">
+                    <tr>
+                      {['Name', 'Content URL', 'Niche', 'Followers', 'Country', 'Applied', 'Status', 'Actions'].map(h => (
+                        <th key={h} className="px-6 py-3 text-left text-xs font-medium text-text-faint uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border">
+                    {applications.length === 0 ? (
+                      <tr><td colSpan={8} className="px-6 py-12 text-center text-text-faint">No applications yet</td></tr>
+                    ) : applications.map(app => (
+                      <tr key={app.id} className="hover:bg-surface-muted transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium text-text-primary">{app.name}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <a href={app.content_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            Link
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-text-secondary">{app.niche}</td>
+                        <td className="px-6 py-4 text-sm text-text-secondary">{app.follower_range}</td>
+                        <td className="px-6 py-4 text-sm text-text-secondary">{app.country}</td>
+                        <td className="px-6 py-4 text-sm text-text-faint">
+                          {new Date(app.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant={
+                            app.status === 'approved' ? 'success' :
+                            app.status === 'rejected' ? 'danger' : 'warning'
+                          }>{app.status}</Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          {app.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleApprove(app.id)}
+                                className="px-3 py-1.5 bg-success text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors">
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => setExpandedRejectRow(expandedRejectRow === app.id ? null : app.id)}
+                                className="px-3 py-1.5 bg-danger text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                Reject
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
