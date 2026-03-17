@@ -32,12 +32,12 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="text-6xl font-bold text-text-primary mb-6 leading-tight">
-                Get reviewed before your first thousand users
+                Your next build deserves a real audience.
               </h1>
               <p className="text-xl text-text-secondary mb-10 max-w-3xl mx-auto leading-relaxed">
-                Submit your MVP. Get tested by curated creator-testers.
-                Receive an AI report and a YouTube review your future
-                users can find.
+                Submit your MVP — finished or not. Get structured feedback
+                from fellow builders and a YouTube review from a creator
+                in your niche.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Link

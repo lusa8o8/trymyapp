@@ -10,7 +10,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState<'developer' | 'tester'>('developer')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,7 +25,7 @@ export default function SignupPage() {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role })
+      body: JSON.stringify({ email, password, role: 'developer' })
     })
     const result = await res.json()
 
@@ -45,8 +44,7 @@ export default function SignupPage() {
       return
     }
 
-    if (role === 'developer') router.push('/onboarding/developer')
-    else router.push('/onboarding/creator')
+    router.push('/onboarding/developer')
     router.refresh()
   }
 
@@ -68,7 +66,7 @@ export default function SignupPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-text-primary mb-1">Create Account</h1>
-          <p className="text-text-secondary">Join TryMyApp.uk and start testing or getting feedback</p>
+          <p className="text-text-secondary">Join TryMyApp.uk and start getting feedback on your apps</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-card p-8">
@@ -96,23 +94,6 @@ export default function SignupPage() {
                 placeholder="••••••••" required
                 className="w-full px-4 py-2.5 rounded-lg border border-surface-border bg-surface-muted text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-brand-black focus:border-transparent" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">I want to...</label>
-              <div className="space-y-2">
-                {[
-                  { value: 'developer', label: 'Submit apps for testing' },
-                  { value: 'tester', label: 'Test apps and earn rewards' }
-                ].map(option => (
-                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="role" value={option.value}
-                      checked={role === option.value}
-                      onChange={() => setRole(option.value as 'developer' | 'tester')}
-                      className="w-4 h-4 accent-brand-black" />
-                    <span className="text-sm text-text-secondary">{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
             <button type="submit" disabled={loading}
               className="w-full bg-brand-black text-white py-3 rounded-lg font-medium hover:bg-brand-dark transition-colors disabled:opacity-50">
               {loading ? 'Creating account...' : 'Create Account'}
@@ -138,15 +119,6 @@ export default function SignupPage() {
             </svg>
             Continue with Google
           </button>
-
-          {role === 'developer' && (
-            <div className="mt-4 p-4 bg-surface-muted border border-surface-border rounded-lg">
-              <p className="text-sm text-text-secondary">
-                🚀 <strong>Launch tier — founding price $97.</strong> First 50 slots.
-                Featured placement + creator review included.
-              </p>
-            </div>
-          )}
 
           <p className="text-center text-sm text-text-secondary mt-6">
             Already have an account?{' '}

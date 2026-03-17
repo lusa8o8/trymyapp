@@ -32,6 +32,9 @@ export default function Footer() {
             <h4 className="text-sm font-semibold text-text-primary mb-3">Company</h4>
             <div className="space-y-2">
               <Link href="/about" className="block text-sm text-text-secondary hover:text-text-primary">About</Link>
+              <Link href="/pricing" className="block text-sm text-text-secondary hover:text-text-primary">Pricing</Link>
+              <Link href="/terms" className="block text-sm text-text-secondary hover:text-text-primary">Terms</Link>
+              <Link href="/privacy" className="block text-sm text-text-secondary hover:text-text-primary">Privacy</Link>
               <Link href="/contact" className="block text-sm text-text-secondary hover:text-text-primary">Contact</Link>
             </div>
           </div>

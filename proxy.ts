@@ -103,8 +103,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/tests', request.url))
   }
 
-  if (isTesterRoute && role !== 'tester' && role !== 'admin') {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (isTesterRoute && role !== 'tester' && role !== 'developer' && role !== 'admin') {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (isAdminRoute && role !== 'admin') {

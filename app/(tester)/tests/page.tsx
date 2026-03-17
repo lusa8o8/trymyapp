@@ -46,7 +46,7 @@ export default function TestsPage() {
               Available Tests
             </h1>
             <p className="text-text-secondary">
-              Pick an app to test and earn rewards for your feedback
+              Test apps as a peer reviewer and help fellow builders improve their products
             </p>
           </div>
         </div>
