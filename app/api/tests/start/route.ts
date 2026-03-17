@@ -27,8 +27,11 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!userData || userData.role !== 'tester') {
-      return NextResponse.json({ error: 'Only testers can start tests' }, { status: 403 })
+    if (!userData || (userData.role !== 'tester' && userData.role !== 'developer')) {
+      return NextResponse.json(
+        { error: 'Only testers and developers can start tests' },
+        { status: 403 }
+      )
     }
 
     const { app_id } = await request.json()

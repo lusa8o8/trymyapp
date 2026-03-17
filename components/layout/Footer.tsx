@@ -18,7 +18,6 @@ export default function Footer() {
             <div className="space-y-2">
               <Link href="/submit" className="block text-sm text-text-secondary hover:text-text-primary">Submit App</Link>
               <Link href="/dashboard" className="block text-sm text-text-secondary hover:text-text-primary">Dashboard</Link>
-              <Link href="/#pricing" className="block text-sm text-text-secondary hover:text-text-primary">Pricing</Link>
             </div>
           </div>
           <div>

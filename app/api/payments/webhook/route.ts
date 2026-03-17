@@ -75,5 +75,40 @@ export async function POST(request: NextRequest) {
       .eq('stripe_session_id', session.id)
   }
 
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object as unknown as {
+      payment_intent: string | null
+    }
+    
+    const paymentIntentId = charge.payment_intent
+    if (!paymentIntentId) {
+      return NextResponse.json({ received: true })
+    }
+
+    const sessions = await stripe.checkout.sessions.list({
+      payment_intent: paymentIntentId,
+      limit: 1
+    })
+
+    const session = sessions.data[0]
+    if (!session?.metadata?.app_id) {
+      return NextResponse.json({ received: true })
+    }
+
+    const { app_id } = session.metadata
+
+    await serviceClient
+      .from('apps')
+      .update({ tier: 'free' })
+      .eq('id', app_id)
+
+    await serviceClient
+      .from('transactions')
+      .update({ status: 'refunded' })
+      .eq('stripe_session_id', session.id)
+
+    console.log(`Refund processed: app ${app_id} demoted to free tier`)
+  }
+
   return NextResponse.json({ received: true })
 }

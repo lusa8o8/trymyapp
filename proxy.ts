@@ -20,9 +20,15 @@ export async function middleware(request: NextRequest) {
     pathname === '/login' ||
     pathname === '/signup' ||
     pathname === '/creators' ||
+    pathname === '/about' ||
+    pathname === '/pricing' ||
+    pathname === '/terms' ||
+    pathname === '/privacy' ||
+    pathname === '/contact' ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/api/') ||
-    // App detail page only — not /apps/[id]/analytics or /apps/[id]/report
+    pathname.startsWith('/_next/') ||
+    pathname.includes('.') ||
     (pathname.startsWith('/apps/') &&
       !pathname.includes('/analytics') &&
       !pathname.includes('/report') &&

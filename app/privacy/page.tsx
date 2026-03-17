@@ -24,7 +24,7 @@ export default function PrivacyPage() {
                 1. Who we are
               </h2>
               <p>
-                TryMyApp.uk is operated by Lula Malungisha. This policy
+                TryMyApp.uk is operated by Lusa Malungisha. This policy
                 explains what data we collect, why we collect it, and
                 how we use it. If you have questions, contact us at
                 lusamalungisha1@gmail.com.
