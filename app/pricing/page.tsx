@@ -1,10 +1,15 @@
-'use client'
-
 import Link from 'next/link'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Check } from 'lucide-react'
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const statsRes = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/stats`,
+    { next: { revalidate: 60 } }
+  )
+  const statsData = await statsRes.json()
+  const slotsRemaining = statsData?.data?.founding_slots_remaining ?? 50
+
   return (
     <PageWrapper>
       <div className="bg-white min-h-screen">
@@ -90,6 +95,12 @@ export default function PricingPage() {
               </Link>
             </div>
 
+            <div>
+            {slotsRemaining <= 10 && (
+              <div className="bg-danger text-white text-xs font-medium text-center py-2 rounded-t-2xl -mb-2 relative z-10">
+                Only {slotsRemaining} slots left at founding price
+              </div>
+            )}
             <div className="bg-brand-black rounded-2xl p-8 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-brand-black px-4 py-1 rounded-full text-xs font-bold">
                 Most Popular
@@ -123,9 +134,10 @@ export default function PricingPage() {
                 className="block w-full text-center py-3 rounded-lg bg-white text-brand-black font-bold hover:bg-white/90 transition-colors text-sm mb-3">
                 Get Launch
               </Link>
-              <p className="text-center text-xs text-white/50">
-                Price increases after 50 slots
-              </p>
+              <div className="text-center text-xs text-white/60">
+                {slotsRemaining} of 50 founding slots remaining
+              </div>
+            </div>
             </div>
           </div>
 

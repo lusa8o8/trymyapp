@@ -9,13 +9,17 @@ interface Stats {
   apps_tested: number
   creator_testers: number
   reports_generated: number
+  founding_slots_used: number
+  founding_slots_remaining: number
 }
 
 export default function HomePage() {
   const [stats, setStats] = useState<Stats>({
     apps_tested: 0,
     creator_testers: 0,
-    reports_generated: 0
+    reports_generated: 0,
+    founding_slots_used: 0,
+    founding_slots_remaining: 50
   })
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function HomePage() {
 
         <section className="bg-brand-black text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
                 <div className="text-5xl font-bold mb-2">
                   {stats.apps_tested}
@@ -84,6 +88,12 @@ export default function HomePage() {
                   {stats.reports_generated}
                 </div>
                 <div className="text-white/70">AI Reports Generated</div>
+              </div>
+              <div>
+                <div className="text-5xl font-bold mb-2">
+                  {stats.founding_slots_remaining}/{50}
+                </div>
+                <div className="text-white/70">Launch Slots Remaining</div>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const serviceClient = createServiceClient()
 
-    const [testsResult, usersResult, reportsResult] = await Promise.all([
+    const [testsResult, usersResult, reportsResult, foundingResult] = await Promise.all([
       serviceClient
         .from('tests')
         .select('*', { count: 'exact', head: true })
@@ -18,6 +18,11 @@ export async function GET() {
         .from('reports')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'ready'),
+      serviceClient
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'launch_tier')
+        .eq('status', 'completed'),
     ])
 
     return NextResponse.json({
@@ -25,6 +30,8 @@ export async function GET() {
         apps_tested: testsResult.count ?? 0,
         creator_testers: usersResult.count ?? 0,
         reports_generated: reportsResult.count ?? 0,
+        founding_slots_used: foundingResult.count ?? 0,
+        founding_slots_remaining: Math.max(0, 50 - (foundingResult.count ?? 0)),
       }
     })
   } catch {
