@@ -17,6 +17,48 @@ interface DashboardMetrics {
   totalFeedback: number
 }
 
+function PostSubmitUpgradePrompt() {
+  const searchParams = useSearchParams()
+  const submitted = searchParams.get('submitted')
+
+  if (!submitted) return null
+
+  return (
+    <div className="bg-white border-2 border-brand-black rounded-2xl p-6 mb-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="font-bold text-text-primary text-lg mb-1">
+            Your app is in review. Want to fast-track it?
+          </h3>
+          <p className="text-text-secondary text-sm mb-4">
+            Upgrade to Launch tier to get featured placement and
+            a guaranteed YouTube review from a creator in your niche.
+            First 50 slots at founding price.
+          </p>
+          <div className="flex gap-3">
+            <a
+              href="/pricing"
+              className="inline-flex items-center gap-2 bg-brand-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors"
+            >
+              View pricing
+            </a>
+            <a
+              href="?dismissed=true"
+              className="inline-flex items-center px-4 py-2 rounded-lg text-sm text-text-faint hover:text-text-primary transition-colors"
+            >
+              Maybe later
+            </a>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div className="text-2xl font-bold text-text-primary">$97</div>
+          <div className="text-xs text-text-faint">founding price</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PaymentBanner() {
   const searchParams = useSearchParams()
   const paymentStatus = searchParams.get('payment')
@@ -153,6 +195,9 @@ export default function DeveloperDashboard() {
 
           <Suspense fallback={null}>
             <PaymentBanner />
+          </Suspense>
+          <Suspense fallback={null}>
+            <PostSubmitUpgradePrompt />
           </Suspense>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

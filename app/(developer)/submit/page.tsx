@@ -102,7 +102,7 @@ export default function SubmitAppPage() {
       return
     }
 
-    router.push('/dashboard')
+    router.push('/dashboard?submitted=true')
   }
 
   const inputClass = "w-full px-4 py-2.5 rounded-lg border border-surface-border bg-white text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-brand-black focus:border-transparent text-sm"
