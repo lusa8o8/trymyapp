@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
-import { ExternalLink, Clock, Tag, User } from 'lucide-react'
+import { ExternalLink, Clock, Tag, User, Video } from 'lucide-react'
 import type { App } from '@/types/database'
 
 type AppWithDeveloper = App & {
@@ -20,11 +20,19 @@ export default function AppDetailPage() {
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [videoReview, setVideoReview] = useState<{
+    video_url: string
+    tester_id: string
+  } | null>(null)
 
   useEffect(() => {
     fetch(`/api/apps/${id}`)
       .then(r => r.json())
       .then(({ data }) => { setApp(data); setLoading(false) })
+
+    fetch(`/api/apps/${id}/video-review`)
+      .then(r => r.json())
+      .then(({ data }) => { if (data) setVideoReview(data) })
 
     fetch('/api/events', {
       method: 'POST',
@@ -118,6 +126,23 @@ export default function AppDetailPage() {
                   {app.description}
                 </p>
               </div>
+
+              {videoReview?.video_url && (
+                <div className="bg-white rounded-2xl p-6 shadow-card">
+                  <h2 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                    <Video className="w-5 h-5" />
+                    Video Review
+                  </h2>
+                  <div className="aspect-video rounded-xl overflow-hidden bg-surface-muted">
+                    <iframe
+                      src={videoReview.video_url.replace('watch?v=', 'embed/')}
+                      className="w-full h-full"
+                      allowFullScreen
+                      title="App video review"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white rounded-2xl p-6 shadow-card">
                 <h2 className="text-lg font-semibold text-text-primary mb-3">

@@ -15,6 +15,7 @@ interface Test {
     url: string
     instructions: string
     description: string
+    tier: string
   }
 }
 
@@ -43,12 +44,13 @@ export default function TestFlowPage() {
   const [suggestions, setSuggestions] = useState('')
   const [wouldUse, setWouldUse] = useState<boolean | null>(null)
   const [checklistDone, setChecklistDone] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
     supabase
       .from('tests')
-      .select('*, apps(name, url, instructions, description)')
+      .select('*, apps(name, url, instructions, description, tier)')
       .eq('id', id)
       .single()
       .then(({ data }) => {
@@ -107,7 +109,16 @@ export default function TestFlowPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ test_id: id })
+      body: JSON.stringify({
+        test_id: id,
+        ux_rating: uxRating,
+        ux_feedback: uxFeedback,
+        bug_report: bugReport,
+        suggestions,
+        checklist_done: checklistDone,
+        would_use: wouldUse,
+        video_url: videoUrl || null
+      })
     })
 
     router.push('/tests?completed=true')
@@ -356,6 +367,25 @@ export default function TestFlowPage() {
                         className={inputClass}
                       />
                     </div>
+
+                    {test.apps.tier === 'launch' && (
+                      <div>
+                        <label className="block text-sm font-medium text-text-primary mb-1.5">
+                          Video Review URL
+                        </label>
+                        <input
+                          type="url"
+                          value={videoUrl}
+                          onChange={e => setVideoUrl(e.target.value)}
+                          placeholder="https://youtube.com/watch?v=..."
+                          className="w-full px-4 py-2.5 rounded-lg border border-surface-border bg-white text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-brand-black text-sm"
+                        />
+                        <p className="text-xs text-text-faint mt-1">
+                          Paste your YouTube video URL after publishing your review.
+                          Required for payout on Launch tier apps.
+                        </p>
+                      </div>
+                    )}
 
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input

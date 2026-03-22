@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { test_id } = await request.json()
+    const { test_id, video_url } = await request.json()
     if (!test_id) return NextResponse.json({ error: 'test_id required' }, { status: 400 })
 
     const serviceClient = createServiceClient()
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
       .from('tests')
       .update({
         status: 'completed',
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        video_url: video_url ?? null
       })
       .eq('id', test_id)
       .select()
