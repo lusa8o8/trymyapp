@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, url, description, instructions, category,
             stage, target_user, specific_feedback,
-            screenshot_url, icon_url } = body
+            screenshot_url, screenshots, icon_url } = body
 
     if (!name || !url || !description || !instructions || !category || !stage || !target_user || !specific_feedback) {
       return NextResponse.json(
@@ -105,7 +105,9 @@ export async function POST(request: NextRequest) {
       .insert({
         developer_id: user.id,
         name, url, description, instructions, category,
-        stage, target_user, specific_feedback,
+        stage: stage ?? null,
+        target_user: target_user ?? null,
+        specific_feedback: specific_feedback ?? null,
         screenshot_url: screenshot_url ?? null,
         icon_url: icon_url ?? null,
         status: 'pending',

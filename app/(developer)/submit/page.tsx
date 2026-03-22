@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PageWrapper from '@/components/layout/PageWrapper'
@@ -14,6 +14,10 @@ export default function SubmitAppPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [screenshots, setScreenshots] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     name: '', url: '', category: '', stage: '', target_user: '',
     specific_feedback: '', description: '', instructions: '',
@@ -22,6 +26,58 @@ export default function SubmitAppPage() {
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }))
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+
+    const remaining = 8 - screenshots.length
+    const toUpload = files.slice(0, remaining)
+
+    if (toUpload.length === 0) {
+      setUploadError('Maximum 8 screenshots allowed')
+      return
+    }
+
+    setUploading(true)
+    setUploadError(null)
+
+    const uploaded: string[] = []
+
+    for (const file of toUpload) {
+      if (file.size > 500 * 1024) {
+        setUploadError(`${file.name} exceeds 500KB limit`)
+        continue
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/apps/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        setUploadError(result.error)
+      } else {
+        uploaded.push(result.url)
+      }
+    }
+
+    setScreenshots(prev => [...prev, ...uploaded])
+    setUploading(false)
+
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const removeScreenshot = (index: number) => {
+    setScreenshots(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +88,11 @@ export default function SubmitAppPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        ...form,
+        screenshot_url: screenshots[0] ?? null,
+        screenshots: screenshots
+      })
     })
     const result = await res.json()
 
@@ -138,10 +198,63 @@ export default function SubmitAppPage() {
 
               <div className="space-y-4 pt-6 border-t border-surface-border">
                 <h2 className="text-lg font-semibold text-text-primary">Screenshots</h2>
-                <div className="border-2 border-dashed border-surface-border rounded-xl p-8 text-center hover:border-brand-black transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-text-faint" />
-                  <p className="text-sm text-text-secondary">Click to upload or drag and drop</p>
-                  <p className="text-xs text-text-faint mt-1">PNG, JPG up to 10MB</p>
+                <div className="space-y-4">
+                  <div
+                    className="border-2 border-dashed border-surface-border rounded-xl p-8 text-center hover:border-brand-black transition-colors cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-text-faint" />
+                    {uploading ? (
+                      <p className="text-sm text-text-secondary">Uploading...</p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-text-secondary">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-text-faint mt-1">
+                          PNG, JPG up to 500KB each — max 8 screenshots
+                        </p>
+                      </>
+                    )}
+                    {screenshots.length > 0 && (
+                      <p className="text-xs text-brand-black mt-2 font-medium">
+                        {screenshots.length}/8 uploaded
+                      </p>
+                    )}
+                  </div>
+
+                  {uploadError && (
+                    <p className="text-xs text-danger">{uploadError}</p>
+                  )}
+
+                  {screenshots.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {screenshots.map((url, index) => (
+                        <div key={index} className="relative rounded-xl overflow-hidden aspect-video bg-surface-muted">
+                          <img
+                            src={url}
+                            alt={`Screenshot ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeScreenshot(index)}
+                            className="absolute top-1 right-1 w-6 h-6 bg-danger text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
