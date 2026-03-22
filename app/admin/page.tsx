@@ -26,7 +26,8 @@ export default function AdminDashboard() {
   const [apps, setApps] = useState<AppWithDeveloper[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [applications, setApplications] = useState<CreatorApplication[]>([])
-  const [tab, setTab] = useState<'pending' | 'all' | 'users' | 'applications'>('pending')
+  const [tab, setTab] = useState<'pending' | 'all' | 'users' | 'applications' | 'payouts'>('pending')
+  const [payouts, setPayouts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [expandedRejectRow, setExpandedRejectRow] = useState<string | null>(null)
@@ -36,11 +37,13 @@ export default function AdminDashboard() {
     Promise.all([
       fetch('/api/admin/apps', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/admin/users', { credentials: 'include' }).then(r => r.json()),
-      fetch('/api/admin/applications', { credentials: 'include' }).then(r => r.json())
-    ]).then(([appsRes, usersRes, appsRes2]) => {
+      fetch('/api/admin/applications', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/admin/payouts', { credentials: 'include' }).then(r => r.json()),
+    ]).then(([appsRes, usersRes, appsRes2, payoutsRes]) => {
       setApps(appsRes.data ?? [])
       setUsers(usersRes.data ?? [])
       setApplications(appsRes2.data ?? [])
+      setPayouts(payoutsRes.data ?? [])
       setLoading(false)
     })
   }, [])
@@ -91,7 +94,8 @@ export default function AdminDashboard() {
     { id: 'pending', label: `Pending Review (${pendingApps.length})` },
     { id: 'all', label: 'All Apps' },
     { id: 'users', label: 'Users' },
-    { id: 'applications', label: `Applications (${pendingApplications.length})` }
+    { id: 'applications', label: `Applications (${pendingApplications.length})` },
+    { id: 'payouts', label: `Payouts` },
   ]
 
   return (
@@ -309,6 +313,99 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+              )}
+              {tab === 'payouts' && (
+                <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+                  <div className="px-6 py-4 border-b border-surface-border">
+                    <h2 className="text-lg font-semibold text-text-primary">
+                      Creator Payouts
+                    </h2>
+                    <p className="text-sm text-text-faint mt-1">
+                      Completed Launch tier tests with video reviews submitted
+                    </p>
+                  </div>
+                  {payouts.length === 0 ? (
+                    <div className="p-12 text-center text-text-faint">
+                      No payouts pending
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead className="bg-surface-muted">
+                        <tr>
+                          {['Creator', 'App', 'Video', 'Completed', 'Status', 'Actions'].map(h => (
+                            <th key={h} className="px-6 py-3 text-left text-xs font-medium text-text-faint uppercase tracking-wider">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-surface-border">
+                        {payouts.map((payout: any) => (
+                          <tr key={payout.id} className="hover:bg-surface-muted transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-text-primary">
+                                {payout.users?.display_name || payout.users?.email}
+                              </div>
+                              <div className="text-xs text-text-faint">
+                                {payout.users?.channel_name || payout.users?.email}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-primary">
+                              {payout.apps?.name}
+                            </td>
+                            <td className="px-6 py-4">
+                              <a
+                                href={payout.video_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-brand-black underline hover:text-brand-dark"
+                              >
+                                Watch video
+                              </a>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-faint">
+                              {new Date(payout.completed_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                payout.payout_status === 'paid'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {payout.payout_status === 'paid' ? 'Paid' : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              {payout.payout_status !== 'paid' && (
+                                <button
+                                  onClick={async () => {
+                                    await fetch('/api/admin/payouts', {
+                                      method: 'PATCH',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      credentials: 'include',
+                                      body: JSON.stringify({
+                                        test_id: payout.id,
+                                        payout_status: 'paid'
+                                      })
+                                    })
+                                    setPayouts(prev => prev.map(p =>
+                                      p.id === payout.id
+                                        ? { ...p, payout_status: 'paid' }
+                                        : p
+                                    ))
+                                  }}
+                                  className="px-3 py-1.5 bg-success text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors"
+                                >
+                                  Mark Paid
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               )}
             </div>
           )}
