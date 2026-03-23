@@ -30,11 +30,18 @@ export async function POST(
 
     const { data: app } = await serviceClient
       .from('apps')
-      .select('id, name, description, category, stage, target_user, specific_feedback, developer_id')
+      .select('id, name, description, category, stage, target_user, specific_feedback, developer_id, tier')
       .eq('id', id)
       .single()
 
     if (!app) return NextResponse.json({ error: 'App not found' }, { status: 404 })
+
+    if (app.tier === 'free') {
+      return NextResponse.json(
+        { error: 'AI reports are available on Builder and Launch tiers only. Upgrade to generate a report.' },
+        { status: 403 }
+      )
+    }
 
     const { data: userData } = await serviceClient
       .from('users')

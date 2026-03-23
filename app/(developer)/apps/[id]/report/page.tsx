@@ -79,6 +79,7 @@ export default function ReportPage() {
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'summary' | 'analysis'>('summary')
+  const [appTier, setAppTier] = useState<string | null>(null)
 
   const fetchReport = () => {
     setLoading(true)
@@ -94,6 +95,12 @@ export default function ReportPage() {
         setLoading(false)
       })
   }
+
+  useEffect(() => {
+    fetch(`/api/apps/${id}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(({ data }) => setAppTier(data?.tier ?? 'free'))
+  }, [id])
 
   useEffect(() => {
     fetchReport()
@@ -125,6 +132,47 @@ export default function ReportPage() {
             <div className="h-8 bg-surface-muted rounded w-1/3" />
             <div className="h-48 bg-surface-muted rounded-2xl" />
             <div className="h-64 bg-surface-muted rounded-2xl" />
+          </div>
+        </div>
+      </PageWrapper>
+    )
+  }
+
+  if (!loading && appTier === 'free') {
+    return (
+      <PageWrapper>
+        <div className="bg-surface-muted min-h-screen py-10">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/dashboard"
+                className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors text-sm">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+              </Link>
+            </div>
+            <div className="bg-white rounded-2xl shadow-card p-12 text-center">
+              <div className="w-16 h-16 bg-surface-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <FileText className="w-8 h-8 text-text-faint" />
+              </div>
+              <h2 className="text-2xl font-bold text-text-primary mb-3">
+                AI Reports are available on Builder and Launch tiers
+              </h2>
+              <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                Upgrade to get a structured AI report with issues,
+                bugs, suggestions, sentiment analysis, and priority
+                actions tailored to your app category and target user.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Link href="/pricing"
+                  className="inline-flex items-center justify-center bg-brand-black text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-dark transition-colors">
+                  View Pricing
+                </Link>
+                <Link href="/dashboard"
+                  className="inline-flex items-center justify-center border border-surface-border text-text-secondary px-6 py-3 rounded-lg font-medium hover:bg-surface-muted transition-colors">
+                  Back to Dashboard
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </PageWrapper>

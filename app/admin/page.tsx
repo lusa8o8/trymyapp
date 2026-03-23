@@ -372,7 +372,7 @@ export default function AdminDashboard() {
                                   ? 'bg-green-100 text-green-800'
                                   : 'bg-amber-100 text-amber-800'
                               }`}>
-                                {payout.payout_status === 'paid' ? 'Paid' : 'Pending'}
+                                {payout.payout_status === 'paid' ? 'Payout Sent' : 'Pending'}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                                   }}
                                   className="px-3 py-1.5 bg-success text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors"
                                 >
-                                  Mark Paid
+                                  Process Payout
                                 </button>
                               )}
                             </td>

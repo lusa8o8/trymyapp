@@ -323,6 +323,7 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
 
+              {!apps.some(a => a.tier === 'launch') && (
               <div className="bg-brand-black rounded-2xl p-6 text-white">
                 <p className="text-xs font-semibold tracking-widest text-white/60 mb-2">
                   UPGRADE YOUR LISTING
@@ -350,6 +351,7 @@ export default function DeveloperDashboard() {
                   </button>
                 </div>
               </div>
+              )}
 
               <div className="bg-white rounded-2xl shadow-card p-6">
                 <h3 className="font-semibold text-text-primary mb-4">

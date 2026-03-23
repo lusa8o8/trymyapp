@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { CheckCircle, Circle, ExternalLink, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Test {
   id: string
@@ -31,6 +32,8 @@ const STEPS = [
 export default function TestFlowPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { user: authUser } = useAuth()
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [test, setTest] = useState<Test | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
@@ -45,6 +48,19 @@ export default function TestFlowPage() {
   const [wouldUse, setWouldUse] = useState<boolean | null>(null)
   const [checklistDone, setChecklistDone] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => setUserRole(data?.role ?? null))
+    })
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -368,7 +384,7 @@ export default function TestFlowPage() {
                       />
                     </div>
 
-                    {test.apps.tier === 'launch' && (
+                    {test.apps.tier === 'launch' && userRole === 'tester' && (
                       <div>
                         <label className="block text-sm font-medium text-text-primary mb-1.5">
                           Video Review URL

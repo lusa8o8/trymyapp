@@ -6,6 +6,22 @@ import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { ExternalLink, Clock, Tag, User, Video } from 'lucide-react'
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  try {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/shorts\/([^&\n?#]+)/,
+    ]
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match) return `https://www.youtube.com/embed/${match[1]}`
+    }
+    return null
+  } catch {
+    return null
+  }
+}
 import type { App } from '@/types/database'
 
 type AppWithDeveloper = App & {
@@ -127,22 +143,26 @@ export default function AppDetailPage() {
                 </p>
               </div>
 
-              {videoReview?.video_url && (
-                <div className="bg-white rounded-2xl p-6 shadow-card">
-                  <h2 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
-                    <Video className="w-5 h-5" />
-                    Video Review
-                  </h2>
-                  <div className="aspect-video rounded-xl overflow-hidden bg-surface-muted">
-                    <iframe
-                      src={videoReview.video_url.replace('watch?v=', 'embed/')}
-                      className="w-full h-full"
-                      allowFullScreen
-                      title="App video review"
-                    />
+              {videoReview?.video_url && (() => {
+                const embedUrl = getYouTubeEmbedUrl(videoReview.video_url)
+                return embedUrl ? (
+                  <div className="bg-white rounded-2xl p-6 shadow-card">
+                    <h2 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                      <Video className="w-5 h-5" />
+                      Video Review
+                    </h2>
+                    <div className="aspect-video rounded-xl overflow-hidden bg-surface-muted">
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        title="App video review"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : null
+              })()}
 
               <div className="bg-white rounded-2xl p-6 shadow-card">
                 <h2 className="text-lg font-semibold text-text-primary mb-3">
