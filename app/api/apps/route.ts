@@ -31,7 +31,11 @@ export async function GET(request: NextRequest) {
 
       const { data, error } = await serviceClient
         .from('apps')
-        .select('*, developer:users!developer_id(display_name, email)')
+        .select(`
+          *,
+          developer:users!developer_id(display_name, email),
+          tests(count)
+        `)
         .eq('developer_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -41,7 +45,11 @@ export async function GET(request: NextRequest) {
 
     let query = serviceClient
       .from('apps')
-      .select('*, developer:users!developer_id(display_name, email)')
+      .select(`
+        *,
+        developer:users!developer_id(display_name, email),
+        tests(count)
+      `)
       .eq('status', 'active')
 
     if (category && category !== 'all') {

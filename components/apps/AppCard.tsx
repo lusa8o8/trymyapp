@@ -6,12 +6,16 @@ import { Users } from 'lucide-react'
 import type { App } from '@/types/database'
 
 interface AppCardProps {
-  app: App & { developer?: { display_name: string | null; email: string } }
+  app: App & {
+    developer?: { display_name: string | null; email: string }
+    tests?: { count: number }[]
+  }
   showCTA?: boolean
 }
 
 export function AppCard({ app, showCTA = true }: AppCardProps) {
   const isFeatured = app.tier === 'launch'
+  const testerCount = app.tests?.[0]?.count ?? 0
 
   return (
     <Link href={`/apps/${app.id}`}>
@@ -66,7 +70,7 @@ export function AppCard({ app, showCTA = true }: AppCardProps) {
           <div className="flex items-center gap-3 text-xs text-text-faint">
             <span className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              0 testers
+              {testerCount} {testerCount === 1 ? 'tester' : 'testers'}
             </span>
           </div>
         </div>
